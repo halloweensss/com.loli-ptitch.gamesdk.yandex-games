@@ -1,0 +1,25 @@
+{
+    "name": "GameSDK.YaGames.Feedback",
+    "rootNamespace": "GameSDK",
+    "references": [
+        "GameSDK.Feedback",
+        "GameSDK.Authentication",
+        "GameSDK.Core",
+        "GameSDK.YaGames.Core"
+    ],
+    "includePlatforms": [
+        "Editor",
+        "WebGL"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "FEEDBACK_YANDEX",
+        "CORE_YANDEX"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,18 @@
+{
+    "name": "GameSDK.YaGames.Plugins",
+    "rootNamespace": "GameSDK",
+    "references": [],
+    "includePlatforms": [
+        "WebGL"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "CORE_YANDEX"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

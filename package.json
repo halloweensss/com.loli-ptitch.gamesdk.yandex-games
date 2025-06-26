@@ -1,0 +1,23 @@
+{
+  "name": "com.loli-ptitch.gamesdk.yandex-games",
+  "version": "1.0.0",
+  "displayName": "Yandex Games Provider",
+  "description": "Unity package to integrate Yandex Games SDK with GameSDK.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/halloweensss/com.loli-ptitch.gamesdk.yangex-games.git"
+  },
+  "keywords": [
+    "yandex",
+    "games",
+    "sdk",
+    "ads",
+    "analytics"
+  ],
+  "author": {
+    "name": "loli-ptitch"
+  },
+  "dependencies": {
+    "com.loli-ptitch.gamesdk": "0.7.0"
+  }
+}

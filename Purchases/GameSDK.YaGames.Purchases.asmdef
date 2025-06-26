@@ -1,0 +1,24 @@
+{
+    "name": "GameSDK.YaGames.Purchases",
+    "rootNamespace": "GameSDK",
+    "references": [
+        "GameSDK.Core",
+        "GameSDK.Purchases",
+        "GameSDK.YaGames.Core"
+    ],
+    "includePlatforms": [
+        "Editor",
+        "WebGL"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "PURCHASES_YANDEX",
+        "CORE_YANDEX"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

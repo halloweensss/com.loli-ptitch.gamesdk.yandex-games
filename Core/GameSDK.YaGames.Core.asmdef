@@ -1,0 +1,21 @@
+{
+    "name": "GameSDK.YaGames.Core",
+    "rootNamespace": "GameSDK",
+    "references": [
+        "GameSDK.Core"
+    ],
+    "includePlatforms": [
+        "Editor",
+        "WebGL"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "CORE_YANDEX"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,24 @@
+{
+    "name": "GameSDK.YaGames.Advertisement",
+    "rootNamespace": "GameSDK",
+    "references": [
+        "GameSDK.Advertisement",
+        "GameSDK.Core",
+        "GameSDK.YaGames.Core"
+    ],
+    "includePlatforms": [
+        "Editor",
+        "WebGL"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "ADS_YANDEX",
+        "CORE_YANDEX"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
