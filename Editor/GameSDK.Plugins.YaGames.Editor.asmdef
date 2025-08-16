@@ -5,8 +5,7 @@
         "GameSDK.Extensions"
     ],
     "includePlatforms": [
-        "Editor",
-        "WebGL"
+        "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

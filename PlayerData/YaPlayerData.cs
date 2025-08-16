@@ -111,7 +111,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
             if (_avatars.TryGetValue(size, out var avatar))
                 return avatar;
 
-            var avatarUrl = YaGamesGetPhoto(_avatarSizes.GetValueOrDefault(size, "small"));
+            var avatarUrl = YaGamesGetPhoto(AvatarSizes.GetValueOrDefault(size, "small"));
 
             if (string.IsNullOrEmpty(avatarUrl) == false)
                 _avatars.TryAdd(size, avatarUrl);
@@ -275,7 +275,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
 
 #if !UNITY_EDITOR
             var payingStatus = YaGamesGetPayingStatus();
-            _payingStatus = _payingStatuses.GetValueOrDefault(payingStatus, PayingStatusType.None);
+            _payingStatus = PayingStatuses.GetValueOrDefault(payingStatus, PayingStatusType.None);
 #else
             _payingStatus = PayingStatusType.Unknown;
 #endif
@@ -403,7 +403,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
 
 #if !UNITY_EDITOR
                 YaGamesSaveDataAll(OnSuccessAll, OnErrorAll);
-                _instance._coroutineDelayedSave = null;
+                Instance._coroutineDelayedSave = null;
                 yield break;
 #endif
                 OnSuccessAll();

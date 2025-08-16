@@ -27,9 +27,9 @@ namespace GameSDK.Plugins.YaGames.RemoteConfigs
         {
 #if !UNITY_EDITOR
             YaRemoteConfigsInitialize(OnSuccess, OnError);
-            _status = InitializationStatus.Waiting;
+            InitializationStatus = InitializationStatus.Waiting;
             
-            while (_status == InitializationStatus.Waiting)
+            while (InitializationStatus == InitializationStatus.Waiting)
                 await Task.Yield();
 #else
             InitializationStatus = InitializationStatus.Waiting;
@@ -92,9 +92,9 @@ namespace GameSDK.Plugins.YaGames.RemoteConfigs
             
             var json = JsonUtility.ToJson(serializableList);
             YaRemoteConfigsInitializeWithClientParameters(json, OnSuccess, OnError);
-            _status = InitializationStatus.Waiting;
+            InitializationStatus = InitializationStatus.Waiting;
             
-            while (_status == InitializationStatus.Waiting)
+            while (InitializationStatus == InitializationStatus.Waiting)
                 await Task.Yield();
 #else
             InitializationStatus = InitializationStatus.Waiting;

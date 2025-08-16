@@ -25,9 +25,9 @@ namespace GameSDK.Plugins.YaGames.Purchases
         {
 #if !UNITY_EDITOR
             YaPurchasesInitialize(OnSuccess, OnError);
-            _status = InitializationStatus.Waiting;
+            InitializationStatus = InitializationStatus.Waiting;
             
-            while (_status == InitializationStatus.Waiting)
+            while (InitializationStatus == InitializationStatus.Waiting)
                 await Task.Yield();
 #else
             InitializationStatus = InitializationStatus.Waiting;
