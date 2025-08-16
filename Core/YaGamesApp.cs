@@ -239,7 +239,7 @@ namespace GameSDK.Plugins.YaGames.Core
             }
 
 #if !UNITY_EDITOR
-            _instance._environment = JsonUtility.FromJson<YaEnvironment>(YaGamesGetEnvironment());
+            Instance._environment = JsonUtility.FromJson<YaEnvironment>(YaGamesGetEnvironment());
 #else
             Instance._environment = new YaEnvironment
             {
