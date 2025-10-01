@@ -8,6 +8,7 @@ using GameSDK.Authentication;
 using GameSDK.Core;
 using GameSDK.GameStorage;
 using GameSDK.Plugins.YaGames.Core;
+using GameSDK.Plugins.YaGames.Extension;
 using UnityEngine;
 
 namespace GameSDK.Plugins.YaGames.PlayerData
@@ -39,7 +40,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
             { AvatarSizeType.Medium, "medium" },
             { AvatarSizeType.Large, "large" }
         };
-        
+
         public string ServiceId => Service.YaGames;
         public InitializationStatus InitializationStatus => _status;
 
@@ -51,7 +52,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                 {
                     InitializeId();
                 }
-                
+
                 return _id;
             }
         }
@@ -64,7 +65,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                 {
                     InitializeName();
                 }
-                
+
                 return _name;
             }
         }
@@ -77,7 +78,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                 {
                     InitializeMode();
                 }
-                
+
                 return _signInType;
             }
         }
@@ -90,7 +91,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                 {
                     InitializePayingStatus();
                 }
-                
+
                 return _payingStatus;
             }
         }
@@ -107,24 +108,19 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                 return string.Empty;
             }
 
-#if !UNITY_EDITOR
             if (_avatars.TryGetValue(size, out var avatar))
                 return avatar;
 
-            var avatarUrl = YaGamesGetPhoto(AvatarSizes.GetValueOrDefault(size, "small"));
+            var avatarUrl = YaGamesGetPhoto(AvatarSizes.GetValueOrDefault(size, "small")).ConsumeUtf8();
 
             if (string.IsNullOrEmpty(avatarUrl) == false)
                 _avatars.TryAdd(size, avatarUrl);
 
             return avatarUrl;
-#else
-            return "default";
-#endif
         }
 
         public async Task SignIn()
         {
-#if !UNITY_EDITOR
             _status = InitializationStatus.Waiting;
             YaGamesGetPlayer(true, OnSuccess, OnError);
             
@@ -160,22 +156,19 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                     Debug.LogWarning($"[GameSDK.Authentication]: You are logged in as a {_signInType}!");
                 }
             }
-#else
-            _status = InitializationStatus.Waiting;
-            _signInType = SignInType.Account;
-            OnSuccess();
-            await Task.CompletedTask;
-#endif
+            
+            return;
             
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
             {
                 Instance._status = InitializationStatus.Initialized;
+                
                 Instance.InitializeId();
                 Instance.InitializeName();
                 Instance.InitializeMode();
                 Instance.InitializePayingStatus();
-                
+
                 if (GameApp.IsDebugMode)
                 {
                     Debug.Log($"[GameSDK.Authentication]: YaPlayerData initialized!");
@@ -195,7 +188,6 @@ namespace GameSDK.Plugins.YaGames.PlayerData
 
         public async Task SignInAsGuest()
         {
-#if !UNITY_EDITOR
             _status = InitializationStatus.Waiting;
             YaGamesGetPlayer(false, OnSuccess, OnError);
 
@@ -209,22 +201,19 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                     Debug.LogWarning($"[GameSDK.Authentication]: You are logged in as a {_signInType}!");
                 }
             }
-#else
-            _status = InitializationStatus.Waiting;
-            _signInType = SignInType.Guest;
-            OnSuccess();
-            await Task.CompletedTask;
-#endif
+            
+            return;
             
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
             {
                 Instance._status = InitializationStatus.Initialized;
+                
                 Instance.InitializeId();
                 Instance.InitializeName();
                 Instance.InitializeMode();
                 Instance.InitializePayingStatus();
-                
+
                 if (GameApp.IsDebugMode)
                 {
                     Debug.Log($"[GameSDK.Authentication]: YaPlayerData initialized!");
@@ -253,12 +242,8 @@ namespace GameSDK.Plugins.YaGames.PlayerData
 
                 return;
             }
-
-#if !UNITY_EDITOR
-            _id = YaGamesGetId();
-#else
-            _id = $"Id [{_signInType.ToString()}]";
-#endif
+            
+            _id = YaGamesGetId().ConsumeUtf8();
         }
 
         private void InitializePayingStatus()
@@ -273,12 +258,8 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                 return;
             }
 
-#if !UNITY_EDITOR
-            var payingStatus = YaGamesGetPayingStatus();
+            var payingStatus = YaGamesGetPayingStatus().ConsumeUtf8();
             _payingStatus = PayingStatuses.GetValueOrDefault(payingStatus, PayingStatusType.None);
-#else
-            _payingStatus = PayingStatusType.Unknown;
-#endif
         }
 
         private void InitializeName()
@@ -293,13 +274,9 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                 return;
             }
 
-#if !UNITY_EDITOR
-            _name = YaGamesGetName();
-#else
-            _name = $"Name [{_signInType.ToString()}]";
-#endif
+            _name = YaGamesGetName().ConsumeUtf8();
         }
-        
+
         private void InitializeMode()
         {
             if (_status != InitializationStatus.Initialized)
@@ -312,7 +289,6 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                 return;
             }
 
-#if !UNITY_EDITOR
             var result = YaGamesGetMode();
             
             _signInType = result switch
@@ -326,15 +302,10 @@ namespace GameSDK.Plugins.YaGames.PlayerData
             {
                 Debug.Log($"[GameSDK.Authentication]: Result auth: {result}");
             }
-#else
-            _signInType = SignInType.Account;
-#endif
         }
 
         public async Task<StorageStatus> Save(string key, string value)
         {
-#if !UNITY_EDITOR
-
             if (InitializationStatus != InitializationStatus.Initialized)
             {
                 await Auth.SignInAsGuest();
@@ -357,13 +328,6 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                 await Task.Yield();
 
             return _lastStorageStatus;
-#else
-            _lastStorageStatus = StorageStatus.Waiting;
-            PlayerPrefs.SetString(key, value);
-            OnSuccess();
-            await Task.CompletedTask;
-            return _lastStorageStatus;
-#endif
 
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
@@ -378,12 +342,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                     return;
                 }
 
-
-#if !UNITY_EDITOR
                 YaGamesSaveDataAll(OnSuccessAll, OnErrorAll);
-                return;
-#endif
-                OnSuccessAll();
                 return;
             }
 
@@ -396,19 +355,13 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                     Debug.LogWarning($"[GameSDK.Storage]: Failed to save data in the YaPlayerData!");
                 }
             }
-            
+
             static IEnumerator DelayedSave()
             {
                 yield return new WaitForSeconds(1f);
 
-#if !UNITY_EDITOR
                 YaGamesSaveDataAll(OnSuccessAll, OnErrorAll);
                 Instance._coroutineDelayedSave = null;
-                yield break;
-#endif
-                OnSuccessAll();
-                Instance._coroutineDelayedSave = null;
-                yield break;
             }
 
             [MonoPInvokeCallback(typeof(Action))]
@@ -419,7 +372,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
                     Debug.Log($"[GameSDK.Storage]: Data saved all in the YaPlayerData!");
                 }
             }
-            
+
             [MonoPInvokeCallback(typeof(Action))]
             static void OnErrorAll()
             {
@@ -432,8 +385,6 @@ namespace GameSDK.Plugins.YaGames.PlayerData
 
         public async Task<(StorageStatus, string)> Load(string key)
         {
-#if !UNITY_EDITOR
-
             if (InitializationStatus != InitializationStatus.Initialized)
             {
                 await Auth.SignInAsGuest();
@@ -461,20 +412,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
             }
 
             return (_lastStorageStatus, string.Empty);
-#else
-            _lastStorageStatus = StorageStatus.Waiting;
-            if (PlayerPrefs.HasKey(key) == false)
-            {
-                OnError();
-            }
-            else
-            {
-                OnSuccess(PlayerPrefs.GetString(key));
-            }
-            await Task.CompletedTask;
-            return (_lastStorageStatus, _lastStorageData);
-#endif
-            
+
             [MonoPInvokeCallback(typeof(Action<string>))]
             static void OnSuccess(string data)
             {
@@ -504,29 +442,58 @@ namespace GameSDK.Plugins.YaGames.PlayerData
             Storage.Register(Instance);
         }
 
-
+#if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern void YaGamesGetPlayer(bool isSigned, Action onSuccess, Action onError);
         
         [DllImport("__Internal")]
-        private static extern string YaGamesGetId();
+        private static extern IntPtr YaGamesGetId();
         [DllImport("__Internal")]
-        private static extern string YaGamesGetPayingStatus();
+        private static extern IntPtr YaGamesGetPayingStatus();
         [DllImport("__Internal")]
-        private static extern string YaGamesGetPhoto(string size);
+        private static extern IntPtr YaGamesGetPhoto(string size);
         
         [DllImport("__Internal")]
-        private static extern string YaGamesGetName();
+        private static extern IntPtr YaGamesGetName();
         
         [DllImport("__Internal")]
         private static extern int YaGamesGetMode();
         
         [DllImport("__Internal")]
-        private static extern string YaGamesSaveData(string key, string value, Action onSuccess, Action onError);
+        private static extern void YaGamesSaveData(string key, string value, Action onSuccess, Action onError);
         [DllImport("__Internal")]
-        private static extern string YaGamesSaveDataAll(Action onSuccess, Action onError);
+        private static extern void YaGamesSaveDataAll(Action onSuccess, Action onError);
         
         [DllImport("__Internal")]
-        private static extern string YaGamesLoadData(string key, Action<string> onSuccess, Action onError);
+        private static extern void YaGamesLoadData(string key, Action<string> onSuccess, Action onError);
+#else
+        private static void YaGamesGetPlayer(bool isSigned, Action onSuccess, Action onError) => onSuccess?.Invoke();
+
+        private static string YaGamesGetId() => "test_user_id";
+
+        private static string YaGamesGetPayingStatus() => "unknown";
+
+        private static string YaGamesGetPhoto(string size) => $"default_{size}";
+
+        private static string YaGamesGetName() => "test_user_name";
+
+        private static int YaGamesGetMode() => 1;
+
+        private static void YaGamesSaveData(string key, string value, Action onSuccess, Action onError)
+        {
+            PlayerPrefs.SetString(key, value);
+            onSuccess?.Invoke();
+        }
+        
+        private static void YaGamesSaveDataAll(Action onSuccess, Action onError) => onSuccess?.Invoke();
+
+        private static void YaGamesLoadData(string key, Action<string> onSuccess, Action onError)
+        {
+            if (PlayerPrefs.HasKey(key))
+                onSuccess?.Invoke(PlayerPrefs.GetString(key));
+            else
+                onError?.Invoke();
+        }
+#endif
     }
 }

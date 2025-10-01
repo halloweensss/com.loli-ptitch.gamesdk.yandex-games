@@ -25,32 +25,14 @@ namespace GameSDK.Plugins.YaGames.RemoteConfigs
 
         public async Task Initialize()
         {
-#if !UNITY_EDITOR
-            YaRemoteConfigsInitialize(OnSuccess, OnError);
             InitializationStatus = InitializationStatus.Waiting;
+            
+            YaRemoteConfigsInitialize(OnSuccess, OnError);
             
             while (InitializationStatus == InitializationStatus.Waiting)
                 await Task.Yield();
-#else
-            InitializationStatus = InitializationStatus.Waiting;
-
-            var data = new List<KeyValueStruct<string>>
-            {
-                new("1", "1"),
-                new("2", "2"),
-                new("4", "3")
-            };
-
-            var serializableList = new SerializableList<KeyValueStruct<string>>
-            {
-                data = data
-            };
-
-            var json = JsonUtility.ToJson(serializableList);
-
-            OnSuccess(json);
-            await Task.CompletedTask;
-#endif
+            
+            return;
 
             [MonoPInvokeCallback(typeof(Action<string>))]
             static void OnSuccess(string value)
@@ -77,7 +59,8 @@ namespace GameSDK.Plugins.YaGames.RemoteConfigs
 
         public async Task InitializeWithUserParameters(params KeyValuePair<string, string>[] parameters)
         {
-#if !UNITY_EDITOR
+            InitializationStatus = InitializationStatus.Waiting;
+            
             var data = new List<KeyValueStruct<string>>(parameters.Length);
 
             foreach (var parameter in parameters)
@@ -92,32 +75,12 @@ namespace GameSDK.Plugins.YaGames.RemoteConfigs
             
             var json = JsonUtility.ToJson(serializableList);
             YaRemoteConfigsInitializeWithClientParameters(json, OnSuccess, OnError);
-            InitializationStatus = InitializationStatus.Waiting;
             
             while (InitializationStatus == InitializationStatus.Waiting)
                 await Task.Yield();
-#else
-            InitializationStatus = InitializationStatus.Waiting;
-
-            var data = new List<KeyValueStruct<string>>
-            {
-                new("1", "4"),
-                new("2", "5"),
-                new("4", "6")
-            };
-
-            var serializableList = new SerializableList<KeyValueStruct<string>>
-            {
-                data = data
-            };
-
-            var json = JsonUtility.ToJson(serializableList);
-
-            OnSuccess(json);
-
-            await Task.CompletedTask;
-#endif
-
+            
+            return;
+            
             [MonoPInvokeCallback(typeof(Action<string>))]
             static void OnSuccess(string value)
             {
@@ -159,11 +122,51 @@ namespace GameSDK.Plugins.YaGames.RemoteConfigs
             GameSDK.RemoteConfigs.RemoteConfigs.Register(Instance);
         }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern void YaRemoteConfigsInitialize(Action<string> onSuccess, Action<string> onError);
 
         [DllImport("__Internal")]
         private static extern void YaRemoteConfigsInitializeWithClientParameters(string parameters,
             Action<string> onSuccess, Action<string> onError);
+#else
+        private static void YaRemoteConfigsInitialize(Action<string> onSuccess, Action<string> onError)
+        {
+            var data = new List<KeyValueStruct<string>>
+            {
+                new("1", "1"),
+                new("2", "2"),
+                new("4", "3")
+            };
+
+            var serializableList = new SerializableList<KeyValueStruct<string>>
+            {
+                data = data
+            };
+
+            var json = JsonUtility.ToJson(serializableList);
+
+            onSuccess?.Invoke(json);
+        }
+        
+        private static void YaRemoteConfigsInitializeWithClientParameters(string parameters, Action<string> onSuccess, Action<string> onError)
+        {
+            var data = new List<KeyValueStruct<string>>
+            {
+                new("1", "4"),
+                new("2", "5"),
+                new("4", "6")
+            };
+
+            var serializableList = new SerializableList<KeyValueStruct<string>>
+            {
+                data = data
+            };
+
+            var json = JsonUtility.ToJson(serializableList);
+
+            onSuccess?.Invoke(json);
+        }
+#endif
     }
 }

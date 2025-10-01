@@ -1,6 +1,6 @@
 {
     "name": "GameSDK.YaGames.Leaderboard",
-    "rootNamespace": "GameSDK",
+    "rootNamespace": "GameSDK.Plugins.YaGames",
     "references": [
         "GameSDK.Leaderboard",
         "GameSDK.Core",

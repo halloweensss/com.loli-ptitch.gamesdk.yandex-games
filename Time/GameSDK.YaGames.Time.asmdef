@@ -1,6 +1,6 @@
 {
     "name": "GameSDK.YaGames.Time",
-    "rootNamespace": "GameSDK",
+    "rootNamespace": "GameSDK.Plugins.YaGames",
     "references": [
         "GameSDK.Core",
         "GameSDK.Time",

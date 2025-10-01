@@ -25,12 +25,7 @@ namespace GameSDK.Plugins.YaGames.Advertisement
 
         public Task ShowInterstitial(string placement = null)
         {
-#if !UNITY_EDITOR
             YaGamesShowInterstitial(OnOpen, OnClose, OnError, OnOffline);
-#else
-            OnOpen();
-            OnClose(true);
-#endif
             return Task.CompletedTask;
 
             [MonoPInvokeCallback(typeof(Action))]
@@ -102,8 +97,15 @@ namespace GameSDK.Plugins.YaGames.Advertisement
             Ads.Interstitial.Register(Instance);
         }
 
-        [DllImport("__Internal")]
-        private static extern void YaGamesShowInterstitial(Action onOpen, Action<bool> onClose, Action<string> onError,
-            Action onOffline);
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [DllImport("__Internal")] private static extern void YaGamesShowInterstitial(Action onOpen, Action<bool> onClose, Action<string> onError, Action onOffline);
+#else
+        private static void YaGamesShowInterstitial(Action onOpen, Action<bool> onClose, Action<string> onError,
+            Action onOffline)
+        {
+            onOpen?.Invoke();
+            onClose?.Invoke(true);
+        }
+#endif
     }
 }

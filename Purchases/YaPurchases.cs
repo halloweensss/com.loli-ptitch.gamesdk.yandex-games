@@ -23,18 +23,15 @@ namespace GameSDK.Plugins.YaGames.Purchases
 
         public async Task Initialize()
         {
-#if !UNITY_EDITOR
-            YaPurchasesInitialize(OnSuccess, OnError);
             InitializationStatus = InitializationStatus.Waiting;
+            
+            YaPurchasesInitialize(OnSuccess, OnError);
             
             while (InitializationStatus == InitializationStatus.Waiting)
                 await Task.Yield();
-#else
-            InitializationStatus = InitializationStatus.Waiting;
-            OnSuccess();
-            await Task.CompletedTask;
-#endif
-
+            
+            return;
+            
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
             {
@@ -55,43 +52,12 @@ namespace GameSDK.Plugins.YaGames.Purchases
 
         public async Task<(bool, Product[])> GetCatalog()
         {
-#if !UNITY_EDITOR
-            YaPurchasesGetCatalog(OnSuccess, OnError);
             _statusResponse = PurchaseStatus.Waiting;
+            
+            YaPurchasesGetCatalog(OnSuccess, OnError);
             
             while (_statusResponse == PurchaseStatus.Waiting)
                 await Task.Yield();
-#else
-            _statusResponse = PurchaseStatus.Waiting;
-            var products = new YaProduct[]
-            {
-                new()
-                {
-                    id = "test_pack_1",
-                    title = "+100 Coins",
-                    description = "+100 Coins",
-                    price = "0.01 YAN",
-                    priceCurrencyCode = "YAN",
-                    priceValue = "0.01"
-                },
-                new()
-                {
-                    id = "test_pack_2",
-                    title = "NoAds",
-                    description = "NoAds",
-                    price = "0.01 YAN",
-                    priceCurrencyCode = "YAN",
-                    priceValue = "0.01"
-                }
-            };
-
-            var catalog = new YaCatalog
-            {
-                products = products
-            };
-            OnSuccess(JsonUtility.ToJson(catalog));
-            await Task.CompletedTask;
-#endif
 
             return (_statusResponse == PurchaseStatus.Success, _productsReceived);
 
@@ -136,23 +102,12 @@ namespace GameSDK.Plugins.YaGames.Purchases
 
         public async Task<(bool, ProductPurchase)> Purchase(string id, string developerPayload)
         {
-#if !UNITY_EDITOR
-            YaPurchasesPurchase(id, developerPayload, OnSuccess, OnError);
             _statusResponse = PurchaseStatus.Waiting;
+            
+            YaPurchasesPurchase(id, developerPayload, OnSuccess, OnError);
             
             while (_statusResponse == PurchaseStatus.Waiting)
                 await Task.Yield();
-#else
-            _statusResponse = PurchaseStatus.Waiting;
-            OnSuccess(JsonUtility.ToJson(new YaProductPurchase
-            {
-                productID = id,
-                purchaseToken = $"{id}_token",
-                signature = string.Empty,
-                developerPayload = developerPayload
-            }));
-            await Task.CompletedTask;
-#endif
 
             return (_statusResponse == PurchaseStatus.Success, _productsPurchase);
 
@@ -188,39 +143,12 @@ namespace GameSDK.Plugins.YaGames.Purchases
 
         public async Task<ProductPurchase[]> GetPurchases()
         {
-#if !UNITY_EDITOR
-            YaPurchasesGetPurchases(OnSuccess, OnError);
             _statusResponse = PurchaseStatus.Waiting;
+            
+            YaPurchasesGetPurchases(OnSuccess, OnError);
             
             while (_statusResponse == PurchaseStatus.Waiting)
                 await Task.Yield();
-#else
-            _statusResponse = PurchaseStatus.Waiting;
-
-            var purchases = new YaPurchasesCatalog
-            {
-                purchases = new YaProductPurchase[]
-                {
-                    new()
-                    {
-                        productID = "test_pack_1",
-                        developerPayload = "test_pack_1_payload",
-                        signature = "test_pack_1_signature",
-                        purchaseToken = "test_pack_1_token"
-                    },
-                    new()
-                    {
-                        productID = "test_pack_2",
-                        developerPayload = "test_pack_2_payload",
-                        signature = "test_pack_2_signature",
-                        purchaseToken = "test_pack_2_token"
-                    }
-                }
-            };
-
-            OnSuccess(JsonUtility.ToJson(purchases));
-            await Task.CompletedTask;
-#endif
 
             return _productPurchases;
 
@@ -269,19 +197,13 @@ namespace GameSDK.Plugins.YaGames.Purchases
 
         public async Task<bool> Consume(ProductPurchase productPurchase)
         {
-#if !UNITY_EDITOR
-            YaPurchasesConsume(productPurchase.Token, OnSuccess, OnError);
             _statusResponse = PurchaseStatus.Waiting;
+            
+            YaPurchasesConsume(productPurchase.Token, OnSuccess, OnError);
             
             while (_statusResponse == PurchaseStatus.Waiting)
                 await Task.Yield();
-#else
-            _statusResponse = PurchaseStatus.Waiting;
-            OnSuccess();
-
-            await Task.CompletedTask;
-#endif
-
+            
             return _statusResponse == PurchaseStatus.Success;
 
             [MonoPInvokeCallback(typeof(Action))]
@@ -309,6 +231,7 @@ namespace GameSDK.Plugins.YaGames.Purchases
             GameSDK.Purchases.Purchases.Register(Instance);
         }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern void YaPurchasesInitialize(Action onSuccess, Action onError);
 
@@ -324,5 +247,79 @@ namespace GameSDK.Plugins.YaGames.Purchases
 
         [DllImport("__Internal")]
         private static extern void YaPurchasesConsume(string token, Action onSuccess, Action<string> onError);
+#else
+        private static void YaPurchasesInitialize(Action onSuccess, Action onError) => onSuccess?.Invoke();
+
+        private static void YaPurchasesGetCatalog(Action<string> onSuccess, Action<string> onError)
+        {
+            var products = new YaProduct[]
+            {
+                new()
+                {
+                    id = "test_pack_1",
+                    title = "+100 Coins",
+                    description = "+100 Coins",
+                    price = "0.01 YAN",
+                    priceCurrencyCode = "YAN",
+                    priceValue = "0.01"
+                },
+                new()
+                {
+                    id = "test_pack_2",
+                    title = "NoAds",
+                    description = "NoAds",
+                    price = "0.01 YAN",
+                    priceCurrencyCode = "YAN",
+                    priceValue = "0.01"
+                }
+            };
+
+            var catalog = new YaCatalog
+            {
+                products = products
+            };
+
+            onSuccess?.Invoke(JsonUtility.ToJson(catalog));
+        }
+
+        private static void YaPurchasesPurchase(string id, string developerPayload, Action<string> onSuccess, Action<string> onError)
+        {
+            onSuccess?.Invoke(JsonUtility.ToJson(new YaProductPurchase
+            {
+                productID = id,
+                purchaseToken = $"{id}_token",
+                signature = string.Empty,
+                developerPayload = developerPayload
+            }));
+        }
+        
+        private static void YaPurchasesGetPurchases(Action<string> onSuccess, Action<string> onError)
+        {
+            var purchases = new YaPurchasesCatalog
+            {
+                purchases = new YaProductPurchase[]
+                {
+                    new()
+                    {
+                        productID = "test_pack_1",
+                        developerPayload = "test_pack_1_payload",
+                        signature = "test_pack_1_signature",
+                        purchaseToken = "test_pack_1_token"
+                    },
+                    new()
+                    {
+                        productID = "test_pack_2",
+                        developerPayload = "test_pack_2_payload",
+                        signature = "test_pack_2_signature",
+                        purchaseToken = "test_pack_2_token"
+                    }
+                }
+            };
+
+            onSuccess?.Invoke(JsonUtility.ToJson(purchases));
+        }
+        
+        private static void YaPurchasesConsume(string token, Action onSuccess, Action<string> onError) => onSuccess?.Invoke();
+#endif
     }
 }

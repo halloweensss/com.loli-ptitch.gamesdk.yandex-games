@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AOT;
 using GameSDK.Core;
+using GameSDK.Plugins.YaGames.Extension;
 using UnityEngine;
 using DeviceType = GameSDK.Core.DeviceType;
 
@@ -71,26 +72,23 @@ namespace GameSDK.Plugins.YaGames.Core
 
         private async Task InitializeInternal()
         {
-#if !UNITY_EDITOR
-            YaGamesInitialize(OnSuccess, OnError);
             _status = InitializationStatus.Waiting;
-            
+            YaGamesInitialize(OnSuccess, OnError);
+
             while (_status == InitializationStatus.Waiting)
                 await Task.Yield();
-#else
-            _status = InitializationStatus.Waiting;
-            OnSuccess();
+
             await Task.CompletedTask;
-#endif
+            return;
 
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
             {
                 Instance._status = InitializationStatus.Initialized;
-                
+
                 Instance.InitializeDeviceType();
                 Instance.InitializeEnvironment();
-                
+
                 if (GameApp.IsDebugMode)
                 {
                     Debug.Log($"[GameSDK]: YaGamesApp initialized!");
@@ -107,21 +105,17 @@ namespace GameSDK.Plugins.YaGames.Core
                 }
             }
         }
-        
-        private async Task GameReadyInternal()
+
+        private Task GameReadyInternal()
         {
-#if !UNITY_EDITOR
             YaGamesReady(OnSuccess, OnError);
-#else
-            await Task.CompletedTask;
-            OnSuccess();
-#endif
-            
+            return Task.CompletedTask;
+
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
             {
                 Instance._ready = true;
-                
+
                 if (GameApp.IsDebugMode)
                 {
                     Debug.Log($"[GameSDK]: YaGamesApp ready!");
@@ -132,28 +126,24 @@ namespace GameSDK.Plugins.YaGames.Core
             static void OnError()
             {
                 Instance._ready = false;
-                
+
                 if (GameApp.IsDebugMode)
                 {
                     Debug.Log($"[GameSDK]: An error occurred while ready the YaGamesApp!");
                 }
             }
         }
-        
-        private async Task GameStartInternal()
+
+        private Task GameStartInternal()
         {
-#if !UNITY_EDITOR
             YaGamesStart(OnSuccess, OnError);
-#else
-            await Task.CompletedTask;
-            OnSuccess();
-#endif
-            
+            return Task.CompletedTask;
+
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
             {
                 Instance._started = true;
-                
+
                 if (GameApp.IsDebugMode)
                 {
                     Debug.Log($"[GameSDK]: YaGamesApp started!");
@@ -169,21 +159,17 @@ namespace GameSDK.Plugins.YaGames.Core
                 }
             }
         }
-        
-        private async Task GameStopInternal()
+
+        private Task GameStopInternal()
         {
-#if !UNITY_EDITOR
             YaGamesStop(OnSuccess, OnError);
-#else
-            await Task.CompletedTask;
-            OnSuccess();
-#endif
-            
+            return Task.CompletedTask;
+
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
             {
                 Instance._started = false;
-                
+
                 if (GameApp.IsDebugMode)
                 {
                     Debug.Log($"[GameSDK]: YaGamesApp stopped!");
@@ -212,20 +198,9 @@ namespace GameSDK.Plugins.YaGames.Core
                 return;
             }
 
-#if !UNITY_EDITOR
             _device = (DeviceType)YaGamesGetDeviceType();
-#else
-            _device = SystemInfo.deviceType switch
-            {
-                UnityEngine.DeviceType.Unknown => DeviceType.Undefined,
-                UnityEngine.DeviceType.Handheld => DeviceType.Mobile,
-                UnityEngine.DeviceType.Console => DeviceType.Console,
-                UnityEngine.DeviceType.Desktop => DeviceType.Desktop,
-                _ => DeviceType.Undefined
-            };
-#endif
         }
-        
+
         private void InitializeEnvironment()
         {
             if (_status != InitializationStatus.Initialized)
@@ -238,26 +213,7 @@ namespace GameSDK.Plugins.YaGames.Core
                 return;
             }
 
-#if !UNITY_EDITOR
-            Instance._environment = JsonUtility.FromJson<YaEnvironment>(YaGamesGetEnvironment());
-#else
-            Instance._environment = new YaEnvironment
-            {
-                app = new YaApp()
-                {
-                    id = "-1"
-                },
-                browser = new YaBrowser()
-                {
-                    lang = "en"
-                },
-                i18n = new YaI18n()
-                {
-                    lang = "en",
-                    tld = "com"
-                }
-            };
-#endif
+            InitializeEnvironmentInternal();
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -266,22 +222,62 @@ namespace GameSDK.Plugins.YaGames.Core
             GameApp.Register(Instance);
         }
 
-        [DllImport("__Internal")]
-        private static extern void YaGamesInitialize(Action onSuccess, Action onError);
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [DllImport("__Internal")] private static extern void YaGamesInitialize(Action onSuccess, Action onError);
+        [DllImport("__Internal")] private static extern void YaGamesReady(Action onSuccess, Action onError);
+        [DllImport("__Internal")] private static extern void YaGamesStart(Action onSuccess, Action onError);
+        [DllImport("__Internal")] private static extern void YaGamesStop(Action onSuccess, Action onError);
+        [DllImport("__Internal")] private static extern int YaGamesGetDeviceType();
+        [DllImport("__Internal")] private static extern IntPtr YaGamesGetEnvironment();
         
-        [DllImport("__Internal")]
-        private static extern void YaGamesReady(Action onSuccess, Action onError);
-        
-        [DllImport("__Internal")]
-        private static extern void YaGamesStart(Action onSuccess, Action onError);
-        
-        [DllImport("__Internal")]
-        private static extern void YaGamesStop(Action onSuccess, Action onError);
+        private static void InitializeEnvironmentInternal()
+        {
+            Instance._environment = YaInterop.WithPtr(
+                YaGamesGetEnvironment,
+                json => string.IsNullOrEmpty(json)
+                    ? new YaEnvironment()
+                    : JsonUtility.FromJson<YaEnvironment>(json)
+            );
+        }
+#else
+        private static void YaGamesInitialize(Action onSuccess, Action onError) => onSuccess?.Invoke();
+        private static void YaGamesReady(Action onSuccess, Action onError) => onSuccess?.Invoke();
+        private static void YaGamesStart(Action onSuccess, Action onError) => onSuccess?.Invoke();
+        private static void YaGamesStop(Action onSuccess, Action onError) => onSuccess?.Invoke();
 
-        [DllImport("__Internal")]
-        private static extern int YaGamesGetDeviceType();
-        
-        [DllImport("__Internal")]
-        private static extern string YaGamesGetEnvironment();
+        private static int YaGamesGetDeviceType() =>
+            SystemInfo.deviceType switch
+            {
+                UnityEngine.DeviceType.Unknown => (int)DeviceType.Undefined,
+                UnityEngine.DeviceType.Handheld => (int)DeviceType.Mobile,
+                UnityEngine.DeviceType.Console => (int)DeviceType.Console,
+                UnityEngine.DeviceType.Desktop => (int)DeviceType.Desktop,
+                _ => (int)DeviceType.Undefined
+            };
+
+        private static IntPtr YaGamesGetEnvironment() => IntPtr.Zero;
+
+        private static void InitializeEnvironmentInternal()
+        {
+            var sysLang = Application.systemLanguage.ToString().ToLowerInvariant();
+            Instance._environment = new YaEnvironment
+            {
+                app = new YaApp
+                {
+                    id = string.IsNullOrEmpty(Application.identifier) ? "editor" : Application.identifier
+                },
+                browser = new YaBrowser
+                {
+                    lang = sysLang
+                },
+                i18n = new YaI18n
+                {
+                    lang = sysLang,
+                    tld = "com"
+                },
+                payload = string.Empty
+            };
+        }
+#endif
     }
 }

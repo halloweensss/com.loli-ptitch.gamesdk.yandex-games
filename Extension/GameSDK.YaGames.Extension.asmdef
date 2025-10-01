@@ -1,8 +1,9 @@
 {
-    "name": "GameSDK.YaGames.Plugins",
+    "name": "GameSDK.YaGames.Extension",
     "rootNamespace": "GameSDK.Plugins.YaGames",
     "references": [],
     "includePlatforms": [
+        "Editor",
         "WebGL"
     ],
     "excludePlatforms": [],
@@ -10,9 +11,7 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [
-        "CORE_YANDEX"
-    ],
+    "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false
 }

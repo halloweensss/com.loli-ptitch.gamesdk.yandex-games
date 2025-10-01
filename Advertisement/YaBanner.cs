@@ -11,7 +11,6 @@ namespace GameSDK.Plugins.YaGames.Advertisement
     public class YaBanner : IBannerAds
     {
         private static readonly YaBanner Instance = new();
-
         public string ServiceId => "YaGames_Banner";
         public InitializationStatus InitializationStatus => InitializationStatus.Initialized;
         public event Action<IBannerAds> OnShownBanner;
@@ -20,11 +19,7 @@ namespace GameSDK.Plugins.YaGames.Advertisement
 
         public Task ShowBanner(BannerPosition position = BannerPosition.None, string placement = null)
         {
-#if !UNITY_EDITOR
             YaGamesShowBanner(OnOpen, OnError);
-#else
-            OnOpen();
-#endif
             return Task.CompletedTask;
 
             [MonoPInvokeCallback(typeof(Action))]
@@ -51,11 +46,7 @@ namespace GameSDK.Plugins.YaGames.Advertisement
 
         public Task HideBanner()
         {
-#if !UNITY_EDITOR
             YaGamesHideBanner(OnHided, OnError);
-#else
-            OnHided();
-#endif
             return Task.CompletedTask;
 
             [MonoPInvokeCallback(typeof(Action))]
@@ -84,15 +75,9 @@ namespace GameSDK.Plugins.YaGames.Advertisement
         {
         }
 
-        public bool IsLoadedBanner(string placement = null)
-        {
-            return true;
-        }
+        public bool IsLoadedBanner(string placement = null) => true;
 
-        public double GetBannerEcpm(string placement = null)
-        {
-            return 0;
-        }
+        public double GetBannerEcpm(string placement = null) => 0;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void RegisterInternal()
@@ -100,10 +85,12 @@ namespace GameSDK.Plugins.YaGames.Advertisement
             Ads.Banner.Register(Instance);
         }
 
-        [DllImport("__Internal")]
-        private static extern void YaGamesShowBanner(Action onOpen, Action<int> onError);
-
-        [DllImport("__Internal")]
-        private static extern void YaGamesHideBanner(Action onHided, Action<int> onError);
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [DllImport("__Internal")] private static extern void YaGamesShowBanner(Action onOpen, Action<int> onError);
+        [DllImport("__Internal")] private static extern void YaGamesHideBanner(Action onHided, Action<int> onError);
+#else
+        private static void YaGamesShowBanner(Action onOpen, Action<int> onError) => onOpen?.Invoke();
+        private static void YaGamesHideBanner(Action onHided, Action<int> onError) => onHided?.Invoke();
+#endif
     }
 }

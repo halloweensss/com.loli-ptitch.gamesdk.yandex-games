@@ -1,6 +1,6 @@
 {
     "name": "GameSDK.YaGames.Editor",
-    "rootNamespace": "",
+    "rootNamespace": "GameSDK.Plugins.YaGames",
     "references": [
         "GameSDK.Extensions"
     ],

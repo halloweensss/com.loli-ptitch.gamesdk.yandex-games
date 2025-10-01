@@ -1,11 +1,12 @@
 {
     "name": "GameSDK.YaGames.PlayerData",
-    "rootNamespace": "GameSDK",
+    "rootNamespace": "GameSDK.Plugins.YaGames",
     "references": [
         "GameSDK.Core",
         "GameSDK.Storage",
         "GameSDK.Authentication",
-        "GameSDK.YaGames.Core"
+        "GameSDK.YaGames.Core",
+        "GameSDK.YaGames.Extension"
     ],
     "includePlatforms": [
         "Editor",

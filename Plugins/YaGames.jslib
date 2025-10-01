@@ -12,74 +12,74 @@
                 .init()
                 .then(ysdk => {
                     yaGames.SDK = ysdk;
-                    dynCall('v', callbackSuccess, []);
+                    {{{ makeDynCall('v', 'callbackSuccess') }}}()
                 })
                 .catch(e => {
-                    dynCall('v', callbackError, []);
+                    {{{ makeDynCall('v', 'callbackError') }}}()
                 });
         },
         
         GameReady: function (callbackSuccess, callbackError) {
             
             if(yaGames.SDK == undefined) {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
                 return;
             }
             
             if(yaGames.SDK.features == undefined) {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
                 return;
             }
             
             if(yaGames.SDK.features.LoadingAPI == undefined) {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
                 return;
             }
             
             yaGames.SDK.features.LoadingAPI.ready();
-            dynCall('v', callbackSuccess, []);
+            {{{ makeDynCall('v', 'callbackSuccess') }}}()
         },
 
         GameStart: function (callbackSuccess, callbackError) {
 
             if(yaGames.SDK == undefined) {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
                 return;
             }
 
             if(yaGames.SDK.features == undefined) {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
                 return;
             }
 
             if(yaGames.SDK.features.GameplayAPI == undefined) {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
                 return;
             }
 
             yaGames.SDK.features.GameplayAPI.start();
-            dynCall('v', callbackSuccess, []);
+            {{{ makeDynCall('v', 'callbackSuccess') }}}()
         },
 
         GameStop: function (callbackSuccess, callbackError) {
 
             if(yaGames.SDK == undefined) {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
                 return;
             }
 
             if(yaGames.SDK.features == undefined) {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
                 return;
             }
 
             if(yaGames.SDK.features.GameplayAPI == undefined) {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
                 return;
             }
 
             yaGames.SDK.features.GameplayAPI.stop();
-            dynCall('v', callbackSuccess, []);
+            {{{ makeDynCall('v', 'callbackSuccess') }}}()
         },
         
         GetDeviceType: function() {
@@ -128,28 +128,28 @@
                                     yaGames.Player = player;
 
                                     await yaGames.LoadAllData();
-                                    
-                                    dynCall('v', callbackSuccess, []);
+
+                                    {{{ makeDynCall('v', 'callbackSuccess') }}}()
                                     return;
                                 })
                                 .catch(e => {
-                                console.error(e.toString());
-                                dynCall('v', callbackError, []);
+                                    console.error(e.toString());
+                                    {{{ makeDynCall('v', 'callbackError') }}}()
                                 return;
                             });
                         }).catch(e => {
                             console.error(e.toString());
-                            dynCall('v', callbackError, []);
+                            {{{ makeDynCall('v', 'callbackError') }}}()
                             return;
                         });
                     }else{
-                        dynCall('v', callbackSuccess, []);
+                        {{{ makeDynCall('v', 'callbackSuccess') }}}()
                     }
                     return;
                 })
                 .catch(e => {
                     console.error(e.toString());
-                    dynCall('v', callbackError, []);
+                    {{{ makeDynCall('v', 'callbackError') }}}()
                     return;
                 });
         },
@@ -181,14 +181,14 @@
 
         SaveData: function (key, value, callbackSuccess, callbackError) {
             yaGames.SaveDataObject[UTF8ToString(key)] = UTF8ToString(value);
-            dynCall('v', callbackSuccess, []);
+            {{{ makeDynCall('v', 'callbackSuccess') }}}()
         },
 
         SaveDataAll: function (callbackSuccess, callbackError) {
             yaGames.Player.setData(yaGames.SaveDataObject, false).then(() => {
-                dynCall('v', callbackSuccess, []);
+                {{{ makeDynCall('v', 'callbackSuccess') }}}()
             }).catch(e => {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
             });
         },
         
@@ -202,7 +202,7 @@
 
                 if (result !== undefined) {
                     const dataString = yaGames.GetAllocatedString(obj[keyStr]);
-                    dynCall('vi', callbackSuccess, [dataString]);
+                    {{{ makeDynCall('vi', 'callbackSuccess') }}}(dataString)
                     _free(dataString);
                     return;
                 }
@@ -215,17 +215,16 @@
                 const result = obj[keyStr];
 
                 if(result === undefined){
-
-                    dynCall('v', callbackError, []);
+                    {{{ makeDynCall('v', 'callbackError') }}}()
                     return;
                 }
                 
                 yaGames.SaveDataObject[keyStr] = result;
                 const dataString = yaGames.GetAllocatedString(result);
-                dynCall('vi', callbackSuccess, [dataString]);
+                {{{ makeDynCall('vi', 'callbackSuccess') }}}(dataString)
                 _free(dataString);
             }).catch(e => {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
             });
         },
         
@@ -240,13 +239,13 @@
             yaGames.SDK.feedback.canReview()
                 .then(({ value, reason }) => {
                     if (value) {
-                        dynCall('v', callbackSuccess, []);
+                        {{{ makeDynCall('v', 'callbackSuccess') }}}()
                     } else {
                         const typeReason = yaGames.GetReviewType(reason);
-                        dynCall('vi', callbackError, [typeReason]);
+                        {{{ makeDynCall('vi', 'callbackError') }}}(typeReason)
                     }
                 }).catch(e => {
-                dynCall('vi', callbackError, [0]);
+                {{{ makeDynCall('vi', 'callbackError') }}}(0)
             });
         },
         
@@ -257,19 +256,19 @@
                         yaGames.SDK.feedback.requestReview()
                             .then(({ feedbackSent }) => {
                                 if(feedbackSent) {
-                                    dynCall('v', callbackSuccess, []);
+                                    {{{ makeDynCall('v', 'callbackSuccess') }}}()
                                 }else{
-                                    dynCall('vi', callbackError, [5]);
+                                    {{{ makeDynCall('vi', 'callbackError') }}}(5)
                                 }
                             }).catch( e => {
-                            dynCall('vi', callbackError, [0]);
+                            {{{ makeDynCall('vi', 'callbackError') }}}(0)
                         });
                     } else {
                         const typeReason = yaGames.GetReviewType(reason);
-                        dynCall('vi', callbackError, [typeReason]);
+                        {{{ makeDynCall('vi', 'callbackError') }}}(typeReason)
                     }
                 }).catch(e => {
-                dynCall('vi', callbackError, [0]);
+                    {{{ makeDynCall('vi', 'callbackError') }}}(0)
             });
         },
 
@@ -277,18 +276,19 @@
             yaGames.SDK.adv.showFullscreenAdv({
                 callbacks: {
                     onOpen: function () {
-                        dynCall('v', callbackOnOpen, []);
+                        {{{ makeDynCall('v', 'callbackOnOpen') }}}()
                     },
                     onClose: function (wasShown) {
-                        dynCall('vi', callbackOnClose, [wasShown]);
+                        {{{ makeDynCall('vi', 'callbackOnClose') }}}(wasShown)
                     },
                     onError: function (error) {
                         const errorStr = yaGames.GetAllocatedString(error);
-                        dynCall('vi', callbackOnError, [errorStr]);
+                        {{{ makeDynCall('vi', 'callbackOnError') }}}(errorStr)
+
                         _free(errorStr);
                     },
                     onOffline: function () {
-                        dynCall('v', callbackOnOffline, []);
+                        {{{ makeDynCall('v', 'callbackOnOffline') }}}()
                     },
                 }
             });
@@ -298,18 +298,18 @@
             yaGames.SDK.adv.showRewardedVideo({
                 callbacks: {
                     onOpen: function () {
-                        dynCall('v', callbackOnOpen, []);
+                        {{{ makeDynCall('v', 'callbackOnOpen') }}}()
                     },
                     onClose: function (wasShown) {
-                        dynCall('v', callbackOnClose, []);
+                        {{{ makeDynCall('v', 'callbackOnClose') }}}()
                     },
                     onError: function (error) {
                         const errorStr = yaGames.GetAllocatedString(error);
-                        dynCall('vi', callbackOnError, [errorStr]);
+                        {{{ makeDynCall('vi', 'callbackOnError') }}}(errorStr)
                         _free(errorStr);
                     },
                     onRewarded: function () {
-                        dynCall('v', callbackOnRewarded, []);
+                        {{{ makeDynCall('v', 'callbackOnRewarded') }}}()
                     },
                 }
             });
@@ -318,12 +318,12 @@
         ShowBanner: function(callbackOnOpen, callbackOnError){
             yaGames.SDK.adv.getBannerAdvStatus().then(({isShowing, reason}) => {
                 if(isShowing) {
-                    dynCall('vi', callbackOnError, [2]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(2)
                 } else if(reason){
-                    dynCall('vi', callbackOnError, [yaGames.GetBannerErrorType(reason)]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(yaGames.GetBannerErrorType(reason))
                 } else {
                     yaGames.SDK.adv.showBannerAdv();
-                    dynCall('v', callbackOnOpen, []);
+                    {{{ makeDynCall('v', 'callbackOnOpen') }}}()
                 }
             });
         },
@@ -331,12 +331,12 @@
         HideBanner: function(callbackOnHided, callbackOnError){
             yaGames.SDK.adv.getBannerAdvStatus().then(({isShowing, reason}) => {
                 if(isShowing == false) {
-                    dynCall('vi', callbackOnError, [3]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(3)
                 } else if(reason){
-                    dynCall('vi', callbackOnError, [yaGames.GetBannerErrorType(reason)]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(yaGames.GetBannerErrorType(reason))
                 } else {
                     yaGames.SDK.adv.hideBannerAdv();
-                    dynCall('v', callbackOnHided, []);
+                    {{{ makeDynCall('v', 'callbackOnHided') }}}()
                 }
             });
         },
@@ -346,16 +346,16 @@
                 if(prompt.canShow){
                     yaGames.SDK.shortcut.showPrompt().then(result => {
                         if(result.outcome === 'accepted'){
-                            dynCall('v', callbackOnSuccess, []);
+                            {{{ makeDynCall('v', 'callbackOnSuccess') }}}()
                         }else{
-                            const dataString = yaGames.GetAllocatedString(result.outcome);
-                            dynCall('vi', callbackOnError, [dataString]);
+                            const dataString = yaGames.GetAllocatedString(result?.outcome ?? 'declined');
+                            {{{ makeDynCall('vi', 'callbackOnError') }}}(dataString)
                             _free(dataString);
                         }
                     })
                 }else{
                     const dataString = yaGames.GetAllocatedString('Cant show');
-                    dynCall('vi', callbackOnError, [dataString]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(dataString)
                     _free(dataString);
                 }
             });
@@ -364,10 +364,10 @@
         CanCreateShortcut: function(callbackOnSuccess, callbackOnError) {
             yaGames.SDK.shortcut.canShowPrompt().then(prompt => {
                 if (prompt.canShow) {
-                    dynCall('v', callbackOnSuccess, []);
+                    {{{ makeDynCall('v', 'callbackOnSuccess') }}}()
                 } else {
                     const dataString = yaGames.GetAllocatedString('Cant show');
-                    dynCall('vi', callbackOnError, [dataString]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(dataString)
                     _free(dataString);
                 }
             });
@@ -378,11 +378,11 @@
             yaGames.SDK.leaderboards.getDescription(idStr)
                 .then(res => {
                     const dataString = yaGames.GetAllocatedString(JSON.stringify(res));
-                    dynCall('vi', callbackOnSuccess, [dataString]);
+                    {{{ makeDynCall('vi', 'callbackOnSuccess') }}}(dataString)
                     _free(dataString);
                 })
                 .catch(e => {
-                    dynCall('v', callbackOnError, []);
+                    {{{ makeDynCall('v', 'callbackOnError') }}}()
                 });
         },
 
@@ -391,22 +391,22 @@
             yaGames.SDK.isAvailableMethod('leaderboards.setScore')
                 .then(isAvailable => {
                     if (isAvailable == false) {
-                        dynCall('v', callbackError, []);
+                        {{{ makeDynCall('v', 'callbackError') }}}()
                         return;
                     }
 
                     yaGames.SDK.leaderboards.setScore(idStr, score)
                         .then(() => {
-                            dynCall('v', callbackSuccess, []);
+                            {{{ makeDynCall('v', 'callbackSuccess') }}}()
                             return;
                         })
                         .catch(e => {
-                            dynCall('v', callbackError, []);
+                            {{{ makeDynCall('v', 'callbackError') }}}()
                             return;
                         });
 
                 }).catch(e => {
-                dynCall('v', callbackError, []);
+                {{{ makeDynCall('v', 'callbackError') }}}()
                 return;
             });
         },
@@ -417,25 +417,25 @@
             yaGames.SDK.isAvailableMethod('leaderboards.getPlayerEntry')
                 .then(isAvailable => {
                     if (isAvailable == false) {
-                        dynCall('v', callbackOnError, []);
+                        {{{ makeDynCall('v', 'callbackOnError') }}}()
                         return;
                     }
 
                     yaGames.SDK.leaderboards.getPlayerEntry(idStr)
                         .then(res => {
                             const dataString = yaGames.GetAllocatedString(JSON.stringify(res));
-                            dynCall('vi', callbackOnSuccess, [dataString]);
+                            {{{ makeDynCall('vi', 'callbackOnSuccess') }}}(dataString)
                             _free(dataString);
                             return;
                         })
                         .catch(e => {
-                            dynCall('v', callbackOnError, []);
+                            {{{ makeDynCall('v', 'callbackOnError') }}}()
                             return;
                         });
 
                 })
                 .catch(e => {
-                    dynCall('v', callbackError, []);
+                    {{{ makeDynCall('v', 'callbackError') }}}()
                     return;
                 });
         },
@@ -446,24 +446,24 @@
             yaGames.SDK.isAvailableMethod('leaderboards.getEntries')
                 .then(isAvailable => {
                     if (isAvailable == false) {
-                        dynCall('v', callbackError, []);
+                        {{{ makeDynCall('v', 'callbackError') }}}()
                         return;
                     }
 
                     yaGames.SDK.leaderboards.getEntries(idStr, {includeUser: includeUser, quantityTop: quantityTop, quantityAround: quantityAround})
                         .then(res => {
                             const dataString = yaGames.GetAllocatedString(JSON.stringify(res));
-                            dynCall('vi', callbackSuccess, [dataString]);
+                            {{{ makeDynCall('vi', 'callbackSuccess') }}}(dataString)
                             _free(dataString);
                             return;
                         })
                         .catch(e => {
-                            dynCall('v', callbackError, []);
+                            {{{ makeDynCall('v', 'callbackError') }}}()
                             return;
                         });
                 })
                 .catch(e => {
-                    dynCall('v', callbackError, []);
+                    {{{ makeDynCall('v', 'callbackError') }}}()
                     return;
                 });
         },
@@ -472,10 +472,10 @@
             yaGames.SDK.getPayments({signed: true})
                 .then(payments => {
                     yaGames.Purchases = payments;
-                    dynCall('v', callbackOnSuccess, []);
+                    {{{ makeDynCall('v', 'callbackOnSuccess') }}}()
                 })
                 .catch(e => {
-                    dynCall('v', callbackOnError, []);
+                    {{{ makeDynCall('v', 'callbackOnError') }}}()
                 });
         },
 
@@ -484,13 +484,13 @@
                 .then(products => {
                     var data = {products: products};
                     const dataString = yaGames.GetAllocatedString(JSON.stringify(data));
-                    dynCall('vi', callbackOnSuccess, [dataString]);
+                    {{{ makeDynCall('vi', 'callbackOnSuccess') }}}(dataString)
                     _free(dataString);
                     return;
                 })
                 .catch(e => {
                     const dataString = yaGames.GetAllocatedString(e);
-                    dynCall('vi', callbackOnError, [e]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(dataString)
                     _free(dataString);
                     return;
                 });
@@ -502,13 +502,13 @@
             yaGames.Purchases.purchase({id: idStr, developerPayload: developerPayloadStr})
                 .then(purchase => {
                     const dataString = yaGames.GetAllocatedString(JSON.stringify(purchase));
-                    dynCall('vi', callbackOnSuccess, [dataString]);
+                    {{{ makeDynCall('vi', 'callbackOnSuccess') }}}(dataString)
                     _free(dataString);
                     return;
                 })
                 .catch(e => {
                     const dataString = yaGames.GetAllocatedString(e);
-                    dynCall('vi', callbackOnError, [e]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(dataString)
                     _free(dataString);
                     return;
                 });
@@ -519,13 +519,13 @@
                 .then(purchases => {
                     var data = {purchases: purchases};
                     const dataString = yaGames.GetAllocatedString(JSON.stringify(data));
-                    dynCall('vi', callbackOnSuccess, [dataString]);
+                    {{{ makeDynCall('vi', 'callbackOnSuccess') }}}(dataString)
                     _free(dataString);
                     return;
                 })
                 .catch(e => {
                     const dataString = yaGames.GetAllocatedString(e);
-                    dynCall('vi', callbackOnError, [e]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(dataString)
                     _free(dataString);
                     return;
                 });
@@ -536,12 +536,12 @@
 
             yaGames.Purchases.consumePurchase(tokenStr)
                 .then(() => {
-                    dynCall('v', callbackOnSuccess, []);
+                    {{{ makeDynCall('v', 'callbackOnSuccess') }}}()
                     return;
                 })
                 .catch(e => {
                     const dataString = yaGames.GetAllocatedString(e);
-                    dynCall('vi', callbackOnError, [e]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(dataString)
                     _free(dataString);
                     return;
                 });
@@ -562,13 +562,13 @@
                 let jsonResult = JSON.stringify(data);
 
                 const dataString = yaGames.GetAllocatedString(jsonResult);
-                
-                dynCall('vi', callbackOnSuccess, [dataString]);
+
+                {{{ makeDynCall('vi', 'callbackOnSuccess') }}}(dataString)
                 _free(dataString);
                 return;
             }).catch(e => {
                     const dataString = yaGames.GetAllocatedString(e);
-                    dynCall('vi', callbackOnError, [e]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(dataString)
                     _free(dataString);
                     return;
             });
@@ -596,13 +596,12 @@
                 let jsonResult = JSON.stringify(data);
 
                 const dataString = yaGames.GetAllocatedString(jsonResult);
-
-                dynCall('vi', callbackOnSuccess, [dataString]);
+                {{{ makeDynCall('vi', 'callbackOnSuccess') }}}(dataString)
                 _free(dataString);
                 return;
             }).catch(e => {
                     const dataString = yaGames.GetAllocatedString(e);
-                    dynCall('vi', callbackOnError, [e]);
+                    {{{ makeDynCall('vi', 'callbackOnError') }}}(dataString)
                     _free(dataString);
                     return;
             });
@@ -636,17 +635,34 @@
             }
         },
 
-        GetAllocatedString: function (string) {
+        GetAllocatedStringText: function (string) {
             const stringBufferSize = lengthBytesUTF8(string) + 1;
             const stringBufferPtr = _malloc(stringBufferSize);
             stringToUTF8(string, stringBufferPtr, stringBufferSize);
             return stringBufferPtr;
         },
 
+        GetAllocatedString: function (value) {
+            let s;
+            if (typeof value === 'string') {
+                s = value;
+            } else if (value && typeof value.message === 'string') {
+                s = value.message;
+            } else {
+                try {
+                    s = JSON.stringify(value ?? '');
+                } catch (e) {
+                    s = String(value);
+                }
+            }
+            
+            return this.GetAllocatedStringText(s);
+        },
+
         ServerTime: function(callback) {
             const serverTime = yaGames.SDK.serverTime();
             const dataString = yaGames.GetAllocatedString(serverTime.toString());
-            dynCall('vi', callback, [dataString]);
+            {{{ makeDynCall('vi', 'callback') }}}(dataString)
             _free(dataString);
         },
     },
@@ -789,6 +805,12 @@
 
     YaGamesServerTime: function (callback){
         yaGames.ServerTime(callback);
+    },
+    
+    YaGamesFreeStringPtr: function (ptr) {
+        if (ptr) {
+            _free(ptr);
+        }
     },
 }
 

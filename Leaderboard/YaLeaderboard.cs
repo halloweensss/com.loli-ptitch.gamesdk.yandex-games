@@ -12,7 +12,7 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
     public class YaLeaderboard : ILeaderboardApp
     {
         private static readonly YaLeaderboard Instance = new YaLeaderboard();
-        
+
         private InitializationStatus _status = InitializationStatus.None;
         private LeaderboardStatus _statusResponse = LeaderboardStatus.None;
         private LeaderboardDescription _descriptionResponse = new LeaderboardDescription();
@@ -20,16 +20,14 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
         private LeaderboardEntries _entriesResponse = new LeaderboardEntries();
         public string ServiceId => Service.YaGames;
         public InitializationStatus InitializationStatus => _status;
+
         public async Task Initialize()
         {
-#if !UNITY_EDITOR
-            OnSuccess();
-#else
             _status = InitializationStatus.Waiting;
             OnSuccess();
             await Task.CompletedTask;
-#endif
-
+            return;
+            
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
             {
@@ -54,26 +52,12 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
 
         public async Task<LeaderboardDescription> GetDescription(string id)
         {
-#if !UNITY_EDITOR
-            YaLeaderboardGetDescription(id, OnSuccess, OnError);
             _statusResponse = LeaderboardStatus.Waiting;
+            
+            YaLeaderboardGetDescription(id, OnSuccess, OnError);
 
             while (_statusResponse == LeaderboardStatus.Waiting)
                 await Task.Yield();
-#else
-            _statusResponse = LeaderboardStatus.Waiting;
-            OnSuccess(JsonUtility.ToJson(new YaLeaderboardDescription()
-            {
-                appID = "-1",
-                title = new YaLeaderboardDescription.Title()
-                {
-                    en = "Title",
-                    ru = "Заголовок"
-                },
-                name = id
-            }));
-            await Task.CompletedTask;
-#endif
 
             return _statusResponse == LeaderboardStatus.Success ? _descriptionResponse : null;
 
@@ -95,7 +79,7 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
                 {
                     Debug.Log($"[GameSDK.Leaderboard]: YaGamesApp description received!");
                 }
-                
+
                 Instance._statusResponse = LeaderboardStatus.Success;
             }
 
@@ -112,17 +96,12 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
 
         public async Task<LeaderboardStatus> SetScore(string id, int score)
         {
-#if !UNITY_EDITOR
-            YaLeaderboardSetScore(id, score, OnSuccess, OnError);
             _statusResponse = LeaderboardStatus.Waiting;
+            
+            YaLeaderboardSetScore(id, score, OnSuccess, OnError);
 
             while (_statusResponse == LeaderboardStatus.Waiting)
                 await Task.Yield();
-#else
-            _statusResponse = LeaderboardStatus.Waiting;
-            OnSuccess();
-            await Task.CompletedTask;
-#endif
 
             return _statusResponse;
 
@@ -133,7 +112,7 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
                 {
                     Debug.Log($"[GameSDK.Leaderboard]: YaGamesApp the data is recorded in the leaderboard!");
                 }
-                
+
                 Instance._statusResponse = LeaderboardStatus.Success;
             }
 
@@ -150,34 +129,12 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
 
         public async Task<(LeaderboardStatus, LeaderboardPlayerData)> GetPlayerData(string id)
         {
-#if !UNITY_EDITOR
-            YaLeaderboardGetPlayerData(id, OnSuccess, OnError);
             _statusResponse = LeaderboardStatus.Waiting;
+            
+            YaLeaderboardGetPlayerData(id, OnSuccess, OnError);
 
             while (_statusResponse == LeaderboardStatus.Waiting)
                 await Task.Yield();
-#else
-            _statusResponse = LeaderboardStatus.Waiting;
-            OnSuccess(JsonUtility.ToJson(new YaLeaderboardPlayerData()
-            {
-                extraData = string.Empty,
-                formattedScore = String.Empty,
-                player = new Player()
-                {
-                    lang = "us",
-                    publicName = "test",
-                    scopePermissions = new ScopePermissions()
-                    {
-                        avatar = string.Empty,
-                        public_name = "test"
-                    },
-                    uniqueID = "-1"
-                },
-                rank = 1,
-                score = 0
-            }));
-            await Task.CompletedTask;
-#endif
 
             return (_statusResponse, _playerDataResponse);
 
@@ -186,7 +143,8 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
             {
                 if (GameApp.IsDebugMode)
                 {
-                    Debug.Log($"[GameSDK.Leaderboard]: YaGamesApp the data is recorded in the leaderboard!\nData:{data}");
+                    Debug.Log(
+                        $"[GameSDK.Leaderboard]: YaGamesApp the data is recorded in the leaderboard!\nData:{data}");
                 }
 
                 var yaPlayerData = JsonUtility.FromJson<YaLeaderboardPlayerData>(data);
@@ -196,7 +154,7 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
                     Rank = yaPlayerData.rank,
                     Score = yaPlayerData.score
                 };
-                
+
                 Instance._statusResponse = LeaderboardStatus.Success;
             }
 
@@ -214,41 +172,12 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
 
         public async Task<(LeaderboardStatus, LeaderboardEntries)> GetEntries(LeaderboardParameters parameters)
         {
-#if !UNITY_EDITOR
-            YaLeaderboardGetEntries(parameters.id, parameters.includeUser, parameters.quantityAround, parameters.quantityTop, OnSuccess, OnError);
             _statusResponse = LeaderboardStatus.Waiting;
+            
+            YaLeaderboardGetEntries(parameters.id, parameters.includeUser, parameters.quantityAround, parameters.quantityTop, OnSuccess, OnError);
 
             while (_statusResponse == LeaderboardStatus.Waiting)
                 await Task.Yield();
-#else
-            _statusResponse = LeaderboardStatus.Waiting;
-            OnSuccess(JsonUtility.ToJson(new YaLeaderboardEntries()
-            {
-                leaderboard = new YaLeaderboardDescription()
-                {
-                    appID = "-1",
-                    title = new YaLeaderboardDescription.Title()
-                    {
-                        en = "Title",
-                        ru = "Заголовок"
-                    },
-                    name = parameters.id
-                },
-                ranges = new[]
-                {
-                    new YaLeaderboardRanges(size: 1, start: 0)
-                },
-                entries = new[]
-                {
-                    new YaLeaderboardPlayerData(extraData: string.Empty, formattedScore: String.Empty,
-                        player: new Player(lang: "us", publicName: "test", scopePermissions: new ScopePermissions(
-                            avatar: string.Empty, publicName: "test"), uniqueID: "-1"), rank: 1, score: 0)
-                },
-                userRank = 1
-            }));
-            
-            await Task.CompletedTask;
-#endif
 
             return (_statusResponse, _entriesResponse);
 
@@ -291,12 +220,12 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
                 }
 
                 dataEntries.UserRank = yaEntries.userRank;
-                
+
                 if (GameApp.IsDebugMode)
                 {
                     Debug.Log($"[GameSDK.Leaderboard]: YaGamesApp the entries is recorded in the leaderboard!");
                 }
-                
+
                 Instance._entriesResponse = dataEntries;
                 Instance._statusResponse = LeaderboardStatus.Success;
             }
@@ -319,6 +248,7 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
             GameSDK.Leaderboard.Leaderboard.Register(Instance);
         }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern void YaLeaderboardGetDescription(string id, Action<string> onSuccess, Action onError);
         [DllImport("__Internal")]
@@ -327,5 +257,72 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
         private static extern void YaLeaderboardGetPlayerData(string id, Action<string> onSuccess, Action onError);
         [DllImport("__Internal")]
         private static extern void YaLeaderboardGetEntries(string id, bool includeUser, int quantityAround, int quantityTop, Action<string> onSuccess, Action onError);
+#else
+        private static void YaLeaderboardGetDescription(string id, Action<string> onSuccess, Action onError)
+        {
+            onSuccess?.Invoke(JsonUtility.ToJson(new YaLeaderboardDescription()
+            {
+                appID = Application.productName,
+                title = new YaLeaderboardDescription.Title
+                {
+                    en = "Title",
+                    ru = "Заголовок"
+                },
+                name = id
+            }));
+        }
+
+        private static void YaLeaderboardSetScore(string id, int score, Action onSuccess, Action onError) => onSuccess?.Invoke();
+
+        private static void YaLeaderboardGetPlayerData(string id, Action<string> onSuccess, Action onError)
+        {
+            onSuccess?.Invoke(JsonUtility.ToJson(new YaLeaderboardPlayerData()
+            {
+                extraData = string.Empty,
+                formattedScore = String.Empty,
+                player = new Player()
+                {
+                    lang = "us",
+                    publicName = "test",
+                    scopePermissions = new ScopePermissions()
+                    {
+                        avatar = string.Empty,
+                        public_name = "test"
+                    },
+                    uniqueID = "-1"
+                },
+                rank = 1,
+                score = 0
+            }));
+        }
+
+        private static void YaLeaderboardGetEntries(string id, bool includeUser, int quantityAround, int quantityTop, Action<string> onSuccess, Action onError)
+        {
+            onSuccess?.Invoke(JsonUtility.ToJson(new YaLeaderboardEntries()
+            {
+                leaderboard = new YaLeaderboardDescription()
+                {
+                    appID = "-1",
+                    title = new YaLeaderboardDescription.Title()
+                    {
+                        en = "Title",
+                        ru = "Заголовок"
+                    },
+                    name = id
+                },
+                ranges = new[]
+                {
+                    new YaLeaderboardRanges(size: 1, start: 0)
+                },
+                entries = new[]
+                {
+                    new YaLeaderboardPlayerData(extraData: string.Empty, formattedScore: String.Empty,
+                        player: new Player(lang: "us", publicName: "test", scopePermissions: new ScopePermissions(
+                            avatar: string.Empty, publicName: "test"), uniqueID: "-1"), rank: 1, score: 0)
+                },
+                userRank = 1
+            }));
+        }
+#endif
     }
 }

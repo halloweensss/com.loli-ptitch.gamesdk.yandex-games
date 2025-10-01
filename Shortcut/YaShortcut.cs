@@ -12,26 +12,22 @@ namespace GameSDK.Plugins.YaGames.Shortcut
     public class YaShortcut : IShortcutApp
     {
         private static readonly YaShortcut Instance = new YaShortcut();
-        
+
         private ShortcutStatus _status;
         public string ServiceId => Service.YaGames;
         public InitializationStatus InitializationStatus => InitializationStatus.Initialized;
+
         public async Task<bool> Create()
         {
-#if !UNITY_EDITOR
+            _status = ShortcutStatus.Waiting;
+            
             YaGamesCreateShortcut(OnSuccess, OnError);
 
-            _status = ShortcutStatus.Waiting;
             while (_status == ShortcutStatus.Waiting)
                 await Task.Yield();
-#else
-            _status = ShortcutStatus.Waiting;
-            OnSuccess();
-            await Task.CompletedTask;
-#endif
+
             return _status == ShortcutStatus.Success;
-            
-            
+
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
             {
@@ -50,27 +46,23 @@ namespace GameSDK.Plugins.YaGames.Shortcut
 
                 if (GameApp.IsDebugMode)
                 {
-                    Debug.Log($"[GameSDK.Shortcut]: YaShortcut an error occurred while creating the shortcut! Reason: {reason}");
+                    Debug.Log(
+                        $"[GameSDK.Shortcut]: YaShortcut an error occurred while creating the shortcut! Reason: {reason}");
                 }
             }
         }
 
         public async Task<bool> CanCreate()
         {
-#if !UNITY_EDITOR
+            _status = ShortcutStatus.Waiting;
+            
             YaGamesCanCreateShortcut(OnSuccess, OnError);
 
-            _status = ShortcutStatus.Waiting;
             while (_status == ShortcutStatus.Waiting)
                 await Task.Yield();
-#else
-            _status = ShortcutStatus.Waiting;
-            OnSuccess();
-            await Task.CompletedTask;
-#endif
+
             return _status == ShortcutStatus.Success;
-            
-            
+
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
             {
@@ -99,11 +91,17 @@ namespace GameSDK.Plugins.YaGames.Shortcut
         {
             GameSDK.Shortcut.Shortcut.Register(Instance);
         }
-        
+
+#if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern void YaGamesCreateShortcut(Action onSuccess, Action<string> onError);
         
         [DllImport("__Internal")]
         private static extern void YaGamesCanCreateShortcut(Action onSuccess, Action<string> onError);
+#else
+        private static void YaGamesCreateShortcut(Action onSuccess, Action<string> onError) => onSuccess?.Invoke();
+
+        private static void YaGamesCanCreateShortcut(Action onSuccess, Action<string> onError) => onSuccess?.Invoke();
+#endif
     }
 }

@@ -1,6 +1,6 @@
 {
     "name": "GameSDK.YaGames.RemoteConfigs",
-    "rootNamespace": "GameSDK",
+    "rootNamespace": "GameSDK.Plugins.YaGames",
     "references": [
         "GameSDK.Core",
         "GameSDK.RemoteConfigs",

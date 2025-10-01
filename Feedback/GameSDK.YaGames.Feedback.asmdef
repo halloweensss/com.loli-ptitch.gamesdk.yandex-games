@@ -1,6 +1,6 @@
 {
     "name": "GameSDK.YaGames.Feedback",
-    "rootNamespace": "GameSDK",
+    "rootNamespace": "GameSDK.Plugins.YaGames",
     "references": [
         "GameSDK.Feedback",
         "GameSDK.Authentication",

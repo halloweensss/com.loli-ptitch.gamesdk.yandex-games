@@ -25,13 +25,7 @@ namespace GameSDK.Plugins.YaGames.Advertisement
 
         public Task ShowRewarded(string placement = null)
         {
-#if !UNITY_EDITOR
             YaGamesShowRewarded(OnOpen, OnClose, OnError, OnRewarded);
-#else
-            OnOpen();
-            OnRewarded();
-            OnClose();
-#endif
             return Task.CompletedTask;
 
             [MonoPInvokeCallback(typeof(Action))]
@@ -91,9 +85,17 @@ namespace GameSDK.Plugins.YaGames.Advertisement
         {
             Ads.Rewarded.Register(Instance);
         }
-
-        [DllImport("__Internal")]
-        private static extern void YaGamesShowRewarded(Action onOpen, Action onClose, Action<string> onError,
-            Action onRewarded);
+        
+        
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [DllImport("__Internal")] private static extern void YaGamesShowRewarded(Action onOpen, Action onClose, Action<string> onError, Action onRewarded);
+#else
+        private static void YaGamesShowRewarded(Action onOpen, Action onClose, Action<string> onError, Action onRewarded)
+        {
+            onOpen?.Invoke();
+            onRewarded?.Invoke();
+            onClose?.Invoke();
+        }
+#endif
     }
 }

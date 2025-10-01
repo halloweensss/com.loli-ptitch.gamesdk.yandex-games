@@ -1,6 +1,6 @@
 {
     "name": "GameSDK.YaGames.Advertisement",
-    "rootNamespace": "GameSDK",
+    "rootNamespace": "GameSDK.Plugins.YaGames",
     "references": [
         "GameSDK.Advertisement",
         "GameSDK.Core",

@@ -23,7 +23,6 @@ namespace GameSDK.Plugins.YaGames.Feedback
 
         public async Task<(bool, FailReviewReason)> CanReview()
         {
-#if !UNITY_EDITOR
             _status = ReviewStatus.Waiting;
             YaGamesCanReview(OnSuccess, OnError);
 
@@ -31,12 +30,6 @@ namespace GameSDK.Plugins.YaGames.Feedback
                 await Task.Yield();
 
             return (_result, GetReason(_failReviewReason));
-#else
-            _status = ReviewStatus.Waiting;
-            OnSuccess();
-            await Task.CompletedTask;
-            return (_result, GetReason(_failReviewReason));
-#endif
 
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
@@ -92,7 +85,6 @@ namespace GameSDK.Plugins.YaGames.Feedback
                 }
             }
 
-#if !UNITY_EDITOR
             _status = ReviewStatus.Waiting;
             YaGamesRequestReview(OnSuccess, OnError);
 
@@ -100,12 +92,6 @@ namespace GameSDK.Plugins.YaGames.Feedback
                 await Task.Yield();
 
             return (_result, GetReason(_failReviewReason));
-#else
-            _status = ReviewStatus.Waiting;
-            OnSuccess();
-            await Task.CompletedTask;
-            return (_result, GetReason(_failReviewReason));
-#endif
 
             [MonoPInvokeCallback(typeof(Action))]
             static void OnSuccess()
@@ -150,10 +136,16 @@ namespace GameSDK.Plugins.YaGames.Feedback
             GameFeedback.Feedback.Register(Instance);
         }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern void YaGamesCanReview(Action onSuccess, Action<int> onError);
 
         [DllImport("__Internal")]
         private static extern void YaGamesRequestReview(Action onSuccess, Action<int> onError);
+#else
+        private static void YaGamesCanReview(Action onSuccess, Action<int> onError) => onSuccess?.Invoke();
+
+        private static void YaGamesRequestReview(Action onSuccess, Action<int> onError) => onSuccess.Invoke();
+#endif
     }
 }
