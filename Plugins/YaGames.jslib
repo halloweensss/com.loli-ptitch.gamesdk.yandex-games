@@ -348,7 +348,7 @@
                         if(result.outcome === 'accepted'){
                             {{{ makeDynCall('v', 'callbackOnSuccess') }}}()
                         }else{
-                            const dataString = yaGames.GetAllocatedString(result?.outcome ?? 'declined');
+                            const dataString = yaGames.GetAllocatedString(result.outcome);
                             {{{ makeDynCall('vi', 'callbackOnError') }}}(dataString)
                             _free(dataString);
                         }
