@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AOT;
@@ -259,7 +259,7 @@ namespace GameSDK.Plugins.YaGames.Core
 
         private static void InitializeEnvironmentInternal()
         {
-            var sysLang = Application.systemLanguage.ToString().ToLowerInvariant();
+            var sysLang = CultureInfo.CurrentCulture.TwoLetterISOLanguageName.ToLowerInvariant();
             Instance._environment = new YaEnvironment
             {
                 app = new YaApp
