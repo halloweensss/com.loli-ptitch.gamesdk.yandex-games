@@ -11,7 +11,7 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
         [field: Preserve]
         public YaLeaderboardRanges[] ranges;
         [field: Preserve]
-        public int userRank;
+        public string userRank;
         [field: Preserve]
         public YaLeaderboardPlayerData[] entries;
     }
@@ -20,15 +20,15 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
     public class YaLeaderboardRanges
     {
         [field: Preserve]
-        public int start;
+        public string start;
         [field: Preserve]
-        public int size;
+        public string size;
 
         public YaLeaderboardRanges()
         {
         }
 
-        public YaLeaderboardRanges(int size, int start)
+        public YaLeaderboardRanges(string size, string start)
         {
             this.size = size;
             this.start = start;

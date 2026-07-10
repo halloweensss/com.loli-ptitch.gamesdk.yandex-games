@@ -81,6 +81,45 @@
             yaGames.SDK.features.GameplayAPI.stop();
             {{{ makeDynCall('v', 'callbackSuccess') }}}()
         },
+
+        SerializeLeaderboardDescription: function(description) {
+            const title = description.title || {};
+
+            return {
+                appID: description.appID,
+                default: description.default,
+                description: description.description,
+                name: description.name,
+                title: title,
+                localizedTitles: Object.keys(title).map(locale => ({
+                    locale: locale,
+                    value: title[locale]
+                }))
+            };
+        },
+
+        SerializeLeaderboardEntry: function(entry) {
+            const player = entry.player || {};
+            let avatarUrl = '';
+
+            try {
+                if (typeof player.getAvatarSrc === 'function')
+                    avatarUrl = player.getAvatarSrc('medium');
+            } catch (e) {
+                avatarUrl = '';
+            }
+
+            return {
+                score: String(entry.score),
+                extraData: entry.extraData,
+                rank: String(entry.rank),
+                player: {
+                    publicName: player.publicName,
+                    uniqueID: player.uniqueID,
+                    avatarUrl: avatarUrl
+                }
+            };
+        },
         
         GetDeviceType: function() {
             const deviceType = yaGames.SDK.deviceInfo.type;
@@ -377,7 +416,7 @@
             const idStr = UTF8ToString(id);
             yaGames.SDK.leaderboards.getDescription(idStr)
                 .then(res => {
-                    const dataString = yaGames.GetAllocatedString(JSON.stringify(res));
+                    const dataString = yaGames.GetAllocatedString(JSON.stringify(yaGames.SerializeLeaderboardDescription(res)));
                     {{{ makeDynCall('vi', 'callbackOnSuccess') }}}(dataString)
                     _free(dataString);
                 })
@@ -386,8 +425,16 @@
                 });
         },
 
-        LeaderboardSetScore: function(id, score, callbackSuccess, callbackError) {
+        LeaderboardSetScore: function(id, score, extraData, callbackSuccess, callbackError) {
             const idStr = UTF8ToString(id);
+            const scoreNumber = Number(UTF8ToString(score));
+            const extraDataStr = extraData ? UTF8ToString(extraData) : null;
+
+            if (Number.isSafeInteger(scoreNumber) === false || scoreNumber < 0) {
+                {{{ makeDynCall('v', 'callbackError') }}}()
+                return;
+            }
+
             yaGames.SDK.isAvailableMethod('leaderboards.setScore')
                 .then(isAvailable => {
                     if (isAvailable == false) {
@@ -395,7 +442,7 @@
                         return;
                     }
 
-                    yaGames.SDK.leaderboards.setScore(idStr, score)
+                    yaGames.SDK.leaderboards.setScore(idStr, scoreNumber, extraDataStr)
                         .then(() => {
                             {{{ makeDynCall('v', 'callbackSuccess') }}}()
                             return;
@@ -423,7 +470,7 @@
 
                     yaGames.SDK.leaderboards.getPlayerEntry(idStr)
                         .then(res => {
-                            const dataString = yaGames.GetAllocatedString(JSON.stringify(res));
+                            const dataString = yaGames.GetAllocatedString(JSON.stringify(yaGames.SerializeLeaderboardEntry(res)));
                             {{{ makeDynCall('vi', 'callbackOnSuccess') }}}(dataString)
                             _free(dataString);
                             return;
@@ -452,7 +499,16 @@
 
                     yaGames.SDK.leaderboards.getEntries(idStr, {includeUser: includeUser, quantityTop: quantityTop, quantityAround: quantityAround})
                         .then(res => {
-                            const dataString = yaGames.GetAllocatedString(JSON.stringify(res));
+                            const response = {
+                                leaderboard: yaGames.SerializeLeaderboardDescription(res.leaderboard),
+                                ranges: res.ranges.map(range => ({
+                                    start: String(range.start),
+                                    size: String(range.size)
+                                })),
+                                userRank: res.userRank == null ? "0" : String(res.userRank),
+                                entries: res.entries.map(entry => yaGames.SerializeLeaderboardEntry(entry))
+                            };
+                            const dataString = yaGames.GetAllocatedString(JSON.stringify(response));
                             {{{ makeDynCall('vi', 'callbackSuccess') }}}(dataString)
                             _free(dataString);
                             return;
@@ -763,8 +819,8 @@
         yaGames.LeaderboardGetDescription(id, callbackSuccess, callbackError);
     },
 
-    YaLeaderboardSetScore: function (id, score, callbackSuccess, callbackError){
-        yaGames.LeaderboardSetScore(id, score, callbackSuccess, callbackError);
+    YaLeaderboardSetScore: function (id, score, extraData, callbackSuccess, callbackError){
+        yaGames.LeaderboardSetScore(id, score, extraData, callbackSuccess, callbackError);
     },
 
     YaLeaderboardGetPlayerData: function (id, callbackSuccess, callbackError){

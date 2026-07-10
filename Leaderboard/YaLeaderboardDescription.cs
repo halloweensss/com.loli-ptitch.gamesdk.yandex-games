@@ -16,7 +16,9 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
         public string name;
         [field: Preserve]
         public Title title;
-        
+        [field: Preserve]
+        public LocalizedTitle[] localizedTitles;
+
         [Serializable]
         public class Description
         {
@@ -25,23 +27,23 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
             [field: Preserve]
             public ScoreFormat score_format;
             [field: Preserve]
+            public string sort_order;
+        }
+
+        [Serializable]
+        public class ScoreFormat
+        {
+            [field: Preserve]
+            public Options options;
+            [field: Preserve]
             public string type;
+        }
 
-
-            [Serializable]
-            public class ScoreFormat
-            {
-                [field: Preserve]
-                public Options options;
-
-
-                [Serializable]
-                public class Options
-                {
-                    [field: Preserve]
-                    public int decimal_offset;
-                }
-            }
+        [Serializable]
+        public class Options
+        {
+            [field: Preserve]
+            public int decimal_offset;
         }
 
         [Serializable]
@@ -51,6 +53,15 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
             public string en;
             [field: Preserve]
             public string ru;
+        }
+
+        [Serializable]
+        public class LocalizedTitle
+        {
+            [field: Preserve]
+            public string locale;
+            [field: Preserve]
+            public string value;
         }
     }
 }

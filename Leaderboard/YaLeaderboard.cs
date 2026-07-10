@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AOT;
@@ -65,15 +66,7 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
             static void OnSuccess(string data)
             {
                 var yaDescription = JsonUtility.FromJson<YaLeaderboardDescription>(data);
-                Instance._descriptionResponse = new LeaderboardDescription()
-                {
-                    Name = yaDescription.name,
-                    Title = new Title()
-                    {
-                        EN = yaDescription.title.en,
-                        RU = yaDescription.title.ru
-                    }
-                };
+                Instance._descriptionResponse = ToLeaderboardDescription(yaDescription);
 
                 if (GameApp.IsDebugMode)
                 {
@@ -94,11 +87,11 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
             }
         }
 
-        public async Task<LeaderboardStatus> SetScore(string id, int score)
+        public async Task<LeaderboardStatus> SetScore(string id, long score, string extraData)
         {
             _statusResponse = LeaderboardStatus.Waiting;
             
-            YaLeaderboardSetScore(id, score, OnSuccess, OnError);
+            YaLeaderboardSetScore(id, score.ToString(CultureInfo.InvariantCulture), extraData, OnSuccess, OnError);
 
             while (_statusResponse == LeaderboardStatus.Waiting)
                 await Task.Yield();
@@ -148,12 +141,7 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
                 }
 
                 var yaPlayerData = JsonUtility.FromJson<YaLeaderboardPlayerData>(data);
-                Instance._playerDataResponse = new LeaderboardPlayerData()
-                {
-                    Name = yaPlayerData.player.publicName,
-                    Rank = yaPlayerData.rank,
-                    Score = yaPlayerData.score
-                };
+                Instance._playerDataResponse = ToLeaderboardPlayerData(yaPlayerData);
 
                 Instance._statusResponse = LeaderboardStatus.Success;
             }
@@ -187,23 +175,15 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
                 var yaEntries = JsonUtility.FromJson<YaLeaderboardEntries>(data);
 
                 var dataEntries = new LeaderboardEntries();
-                dataEntries.Leaderboard = new LeaderboardDescription()
-                {
-                    Name = yaEntries.leaderboard.name,
-                    Title = new Title()
-                    {
-                        EN = yaEntries.leaderboard.title.en,
-                        RU = yaEntries.leaderboard.title.ru,
-                    }
-                };
+                dataEntries.Leaderboard = ToLeaderboardDescription(yaEntries.leaderboard);
                 dataEntries.Ranges = new LeaderboardRange[yaEntries.ranges.Length];
                 for (int i = 0; i < yaEntries.ranges.Length; i++)
                 {
                     var range = yaEntries.ranges[i];
                     dataEntries.Ranges[i] = new LeaderboardRange()
                     {
-                        Start = range.start,
-                        Size = range.size
+                        Start = ToInt64(range.start),
+                        Size = ToInt64(range.size)
                     };
                 }
 
@@ -211,15 +191,11 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
                 for (int i = 0; i < yaEntries.entries.Length; i++)
                 {
                     var playerData = yaEntries.entries[i];
-                    dataEntries.Entries[i] = new LeaderboardPlayerData()
-                    {
-                        Name = playerData.player.publicName,
-                        Rank = playerData.rank,
-                        Score = playerData.score
-                    };
+                    dataEntries.Entries[i] = ToLeaderboardPlayerData(playerData);
                 }
 
-                dataEntries.UserRank = yaEntries.userRank;
+                dataEntries.UserRank = ToInt64(yaEntries.userRank);
+                dataEntries.HasUserRank = dataEntries.UserRank > 0;
 
                 if (GameApp.IsDebugMode)
                 {
@@ -248,11 +224,75 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
             GameSDK.Leaderboard.Leaderboard.Register(Instance);
         }
 
+        private static LeaderboardPlayerData ToLeaderboardPlayerData(YaLeaderboardPlayerData playerData)
+        {
+            return new LeaderboardPlayerData()
+            {
+                PlayerId = playerData.player.uniqueID,
+                Name = playerData.player.publicName,
+                AvatarUrl = playerData.player.avatarUrl,
+                Rank = ToInt64(playerData.rank),
+                Score = ToInt64(playerData.score),
+                ExtraData = playerData.extraData
+            };
+        }
+
+        private static LeaderboardDescription ToLeaderboardDescription(YaLeaderboardDescription description)
+        {
+            var providerDescription = description.description;
+            var scoreFormat = providerDescription?.score_format;
+
+            return new LeaderboardDescription()
+            {
+                AppId = description.appID,
+                Name = description.name,
+                Title = new Title()
+                {
+                    EN = description.title?.en,
+                    RU = description.title?.ru
+                },
+                LocalizedTitles = ToLocalizedTitles(description.localizedTitles),
+                IsDefault = description.@default,
+                SortOrder = providerDescription?.sort_order,
+                IsInvertedSortOrder = providerDescription?.invert_sort_order ?? false,
+                ScoreFormat = new LeaderboardScoreFormat()
+                {
+                    Type = scoreFormat?.type,
+                    DecimalOffset = scoreFormat?.options?.decimal_offset ?? 0
+                }
+            };
+        }
+
+        private static LeaderboardLocalizedTitle[] ToLocalizedTitles(YaLeaderboardDescription.LocalizedTitle[] titles)
+        {
+            if (titles == null)
+                return Array.Empty<LeaderboardLocalizedTitle>();
+
+            var localizedTitles = new LeaderboardLocalizedTitle[titles.Length];
+            for (var i = 0; i < titles.Length; i++)
+            {
+                localizedTitles[i] = new LeaderboardLocalizedTitle()
+                {
+                    Locale = titles[i].locale,
+                    Value = titles[i].value
+                };
+            }
+
+            return localizedTitles;
+        }
+
+        private static long ToInt64(string value)
+        {
+            return long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result)
+                ? result
+                : 0;
+        }
+
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
         private static extern void YaLeaderboardGetDescription(string id, Action<string> onSuccess, Action onError);
         [DllImport("__Internal")]
-        private static extern void YaLeaderboardSetScore(string id, int score, Action onSuccess, Action onError);
+        private static extern void YaLeaderboardSetScore(string id, string score, string extraData, Action onSuccess, Action onError);
         [DllImport("__Internal")]
         private static extern void YaLeaderboardGetPlayerData(string id, Action<string> onSuccess, Action onError);
         [DllImport("__Internal")]
@@ -263,6 +303,9 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
             onSuccess?.Invoke(JsonUtility.ToJson(new YaLeaderboardDescription()
             {
                 appID = Application.productName,
+                @default = true,
+                description = CreateDefaultDescription(),
+                localizedTitles = CreateDefaultLocalizedTitles(),
                 title = new YaLeaderboardDescription.Title
                 {
                     en = "Title",
@@ -272,27 +315,21 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
             }));
         }
 
-        private static void YaLeaderboardSetScore(string id, int score, Action onSuccess, Action onError) => onSuccess?.Invoke();
+        private static void YaLeaderboardSetScore(string id, string score, string extraData, Action onSuccess, Action onError) => onSuccess?.Invoke();
 
         private static void YaLeaderboardGetPlayerData(string id, Action<string> onSuccess, Action onError)
         {
             onSuccess?.Invoke(JsonUtility.ToJson(new YaLeaderboardPlayerData()
             {
                 extraData = string.Empty,
-                formattedScore = String.Empty,
                 player = new Player()
                 {
-                    lang = "us",
                     publicName = "test",
-                    scopePermissions = new ScopePermissions()
-                    {
-                        avatar = string.Empty,
-                        public_name = "test"
-                    },
-                    uniqueID = "-1"
+                    uniqueID = "-1",
+                    avatarUrl = "https://example.com/avatar-medium.png"
                 },
-                rank = 1,
-                score = 0
+                rank = "1",
+                score = "0"
             }));
         }
 
@@ -303,6 +340,9 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
                 leaderboard = new YaLeaderboardDescription()
                 {
                     appID = "-1",
+                    @default = true,
+                    description = CreateDefaultDescription(),
+                    localizedTitles = CreateDefaultLocalizedTitles(),
                     title = new YaLeaderboardDescription.Title()
                     {
                         en = "Title",
@@ -312,16 +352,42 @@ namespace GameSDK.Plugins.YaGames.Leaderboard
                 },
                 ranges = new[]
                 {
-                    new YaLeaderboardRanges(size: 1, start: 0)
+                    new YaLeaderboardRanges(size: "1", start: "0")
                 },
                 entries = new[]
                 {
-                    new YaLeaderboardPlayerData(extraData: string.Empty, formattedScore: String.Empty,
-                        player: new Player(lang: "us", publicName: "test", scopePermissions: new ScopePermissions(
-                            avatar: string.Empty, publicName: "test"), uniqueID: "-1"), rank: 1, score: 0)
+                    new YaLeaderboardPlayerData(extraData: string.Empty,
+                        player: new Player(publicName: "test", uniqueID: "-1",
+                            avatarUrl: "https://example.com/avatar-medium.png"), rank: "1", score: "0")
                 },
-                userRank = 1
+                userRank = "1"
             }));
+        }
+
+        private static YaLeaderboardDescription.Description CreateDefaultDescription()
+        {
+            return new YaLeaderboardDescription.Description()
+            {
+                invert_sort_order = false,
+                sort_order = "DESC",
+                score_format = new YaLeaderboardDescription.ScoreFormat()
+                {
+                    type = "numeric",
+                    options = new YaLeaderboardDescription.Options()
+                    {
+                        decimal_offset = 0
+                    }
+                }
+            };
+        }
+
+        private static YaLeaderboardDescription.LocalizedTitle[] CreateDefaultLocalizedTitles()
+        {
+            return new[]
+            {
+                new YaLeaderboardDescription.LocalizedTitle() { locale = "en", value = "Title" },
+                new YaLeaderboardDescription.LocalizedTitle() { locale = "ru", value = "Заголовок" }
+            };
         }
 #endif
     }
