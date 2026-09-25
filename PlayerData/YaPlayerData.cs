@@ -29,7 +29,7 @@ namespace GameSDK.Plugins.YaGames.PlayerData
         private static readonly Dictionary<string, PayingStatusType> PayingStatuses = new()
         {
             { "unknown", PayingStatusType.Unknown },
-            { "not_paying", PayingStatusType.Paying },
+            { "not_paying", PayingStatusType.NotPaying },
             { "partially_paying", PayingStatusType.PartiallyPaying },
             { "paying", PayingStatusType.Paying }
         };
